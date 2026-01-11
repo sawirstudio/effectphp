@@ -104,13 +104,10 @@ final class All
             return Effect::defect(new \InvalidArgumentException('Cannot run firstSuccess on empty array'));
         }
 
-        $result = $effects[0];
-
-        for ($i = 1; $i < count($effects); $i++) {
-            $effect = $effects[$i];
-            $result = $result->orElse($effect);
-        }
-
-        return $result;
+        return array_reduce(
+            array_slice($effects, 1),
+            fn(Effect $acc, Effect $effect) => $acc->orElse($effect),
+            $effects[0]
+        );
     }
 }

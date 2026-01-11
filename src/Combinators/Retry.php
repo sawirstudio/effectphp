@@ -93,22 +93,20 @@ final class Retry
     private static function retryLoop(Effect $effect, RetryPolicy $policy, int $attempt): Effect
     {
         return $effect->catchAll(function ($error) use ($effect, $policy, $attempt) {
-            if ($attempt >= $policy->maxRetries) {
-                return Effect::fail($error);
-            }
-
             $shouldRetry = $policy->shouldRetry;
-            if ($shouldRetry !== null && !$shouldRetry($error, $attempt)) {
+            $canRetry = $attempt < $policy->maxRetries
+                && ($shouldRetry === null || $shouldRetry($error, $attempt));
+
+            if (!$canRetry) {
                 return Effect::fail($error);
             }
 
+            $nextAttempt = self::retryLoop($effect, $policy, $attempt + 1);
             $delay = $policy->delayForAttempt($attempt);
 
-            if ($delay > 0) {
-                return Timing::delay($delay)->flatMap(fn() => self::retryLoop($effect, $policy, $attempt + 1));
-            }
-
-            return self::retryLoop($effect, $policy, $attempt + 1);
+            return $delay > 0
+                ? Timing::delay($delay)->flatMap(fn() => $nextAttempt)
+                : $nextAttempt;
         });
     }
 

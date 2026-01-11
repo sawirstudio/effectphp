@@ -262,9 +262,9 @@ final class Effect
      */
     public function tap(Closure $f): self
     {
-        return $this->flatMap(function ($a) use ($f) {
+        return $this->map(function ($a) use ($f) {
             $f($a);
-            return self::succeed($a);
+            return $a;
         });
     }
 
@@ -380,12 +380,9 @@ final class Effect
      */
     public function catchTag(string $errorClass, Closure $handler): self
     {
-        return $this->catchAll(function ($error) use ($errorClass, $handler) {
-            if ($error instanceof $errorClass) {
-                return $handler($error);
-            }
-            return self::fail($error);
-        });
+        return $this->catchAll(
+            fn($error) => $error instanceof $errorClass ? $handler($error) : self::fail($error)
+        );
     }
 
     /**
@@ -449,12 +446,11 @@ final class Effect
      */
     public function orDie(): self
     {
-        return $this->catchAll(function ($error) {
-            if ($error instanceof \Throwable) {
-                return self::defect($error);
-            }
-            return self::defect(new \RuntimeException((string) $error));
-        });
+        return $this->catchAll(
+            fn($error) => self::defect(
+                $error instanceof \Throwable ? $error : new \RuntimeException((string) $error)
+            )
+        );
     }
 
     /**
@@ -469,10 +465,9 @@ final class Effect
             if ($predicate($error)) {
                 return self::fail($error);
             }
-            if ($error instanceof \Throwable) {
-                return self::defect($error);
-            }
-            return self::defect(new \RuntimeException((string) $error));
+            return self::defect(
+                $error instanceof \Throwable ? $error : new \RuntimeException((string) $error)
+            );
         });
     }
 
@@ -543,10 +538,10 @@ final class Effect
      */
     public function ensuring(Effect $finalizer): self
     {
-        return $this->catchAllCause(function (Cause $cause) use ($finalizer) {
-            return $finalizer->flatMap(fn() => self::failCause($cause));
-        })->flatMap(function ($a) use ($finalizer) {
-            return $finalizer->as($a);
-        });
+        return $this->catchAllCause(
+            fn(Cause $cause) => $finalizer->flatMap(fn() => self::failCause($cause))
+        )->flatMap(
+            fn($a) => $finalizer->as($a)
+        );
     }
 }

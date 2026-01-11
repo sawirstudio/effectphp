@@ -83,18 +83,13 @@ final class Timing
      */
     public static function timeout(Effect $effect, int $milliseconds): Effect
     {
-        return Effect::sync(fn() => microtime(true) + ($milliseconds / 1000))->flatMap(function ($deadline) use (
-            $effect,
-        ) {
-            return $effect->flatMap(function ($value) use ($deadline) {
-                if (microtime(true) > $deadline) {
-                    return Effect::fail(
-                        new TimeoutError((int) (($deadline - microtime(true) + ($deadline - microtime(true))) * 1000)),
-                    );
-                }
-                return Effect::succeed($value);
-            });
-        });
+        return Effect::sync(fn() => microtime(true) + ($milliseconds / 1000))->flatMap(
+            fn($deadline) => $effect->flatMap(
+                fn($value) => microtime(true) > $deadline
+                    ? Effect::fail(new TimeoutError($milliseconds))
+                    : Effect::succeed($value)
+            )
+        );
     }
 
     /**

@@ -106,9 +106,7 @@ final class FiberRuntime implements RuntimeInterface
         /** @var Deferred<E, A> $deferred */
         $deferred = new Deferred();
 
-        $this->runCallback($effect, function (Exit_ $exit) use ($deferred) {
-            $deferred->complete($exit);
-        });
+        $this->runCallback($effect, fn(Exit_ $exit) => $deferred->complete($exit));
 
         return $deferred;
     }

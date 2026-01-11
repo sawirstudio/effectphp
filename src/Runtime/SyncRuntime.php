@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace EffectPHP\Runtime;
 
 use EffectPHP\Cause\Cause;
-use EffectPHP\Cause\Interrupt as InterruptCause;
 use EffectPHP\Context\Context;
 use EffectPHP\Effect\Access;
 use EffectPHP\Effect\Async;
