@@ -1,7 +1,9 @@
 {
-    "name": "effectphp/effect",
+    "name": "sawirstudio/effectphp",
     "description": "Functional effects library for PHP with typed error handling",
     "type": "library",
+    "authors": [{"name": "Ricardo Sawir", "email": "ricardo@sawirstudio.com", "role": "Developer"}],
+    "homepage": "https://github.com/sawirstudio/effectphp",
     "license": "MIT",
     "keywords": ["effect", "functional", "monad", "error-handling", "typed-errors", "fibers"],
     "require": {
